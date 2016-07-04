@@ -852,10 +852,7 @@ void GLWidget3D::generateBuildingImages(const QString& cga_dir, const QString& o
 									EDLine(source, mat, edge_displacement, sketchy_line, grayscale);
 
 									// 画像を縮小
-									cv::resize(mat, mat, cv::Size(256, 256));
-									cv::threshold(mat, mat, 250, 255, CV_THRESH_BINARY);
-									cv::resize(mat, mat, cv::Size(image_width, image_height));
-									cv::threshold(mat, mat, 250, 255, CV_THRESH_BINARY);
+									utils::resizeImage(mat, cv::Size(image_width, image_height));
 
 									// 画像が有効なら保存
 									if (!remove_invalid || isImageValid(mat)) {
@@ -921,7 +918,6 @@ void GLWidget3D::generateRoofImages(const QString& cga_dir, const QString& outpu
 	QDir().mkpath(output_dir);
 
 	srand(0);
-	//renderManager.depthSensitivity = 1.0f;
 	renderManager.renderingMode = RenderManager::RENDERING_MODE_LINE;
 
 	// setup camera
@@ -1012,10 +1008,7 @@ void GLWidget3D::generateRoofImages(const QString& cga_dir, const QString& outpu
 					EDLine(source, mat, edge_displacement, sketchy_line, grayscale);
 
 					// 画像を縮小
-					cv::resize(mat, mat, cv::Size(256, 256));
-					cv::threshold(mat, mat, 250, 255, CV_THRESH_BINARY);
-					cv::resize(mat, mat, cv::Size(image_width, image_height));
-					cv::threshold(mat, mat, 250, 255, CV_THRESH_BINARY);
+					utils::resizeImage(mat, cv::Size(image_width, image_height));
 
 					// create a subdir (000, 001, ...)
 					if (count % 100000 == 0) {
@@ -1131,8 +1124,7 @@ void GLWidget3D::generateWindowImages(const QString& cga_dir, const QString& out
 					catch (const char* ex) {
 						std::cout << "ERROR:" << std::endl << ex << std::endl;
 					}
-
-
+					
 					// put a background plane
 					std::vector<Vertex> vertices;
 					glutils::drawQuad(100, 100, glm::vec4(1, 1, 1, 1), glm::translate(glm::rotate(glm::mat4(), -3.141592f * 0.5f, glm::vec3(1, 0, 0)), glm::vec3(0, 0, -10)), vertices);
@@ -1148,10 +1140,7 @@ void GLWidget3D::generateWindowImages(const QString& cga_dir, const QString& out
 					EDLine(source, mat, edge_displacement, sketchy_line, grayscale);
 
 					// 画像を縮小
-					cv::resize(mat, mat, cv::Size(256, 256));
-					cv::threshold(mat, mat, 250, 255, CV_THRESH_BINARY);
-					cv::resize(mat, mat, cv::Size(image_width, image_height));
-					cv::threshold(mat, mat, 250, 255, CV_THRESH_BINARY);
+					utils::resizeImage(mat, cv::Size(image_width, image_height));
 
 					// create a subdir (000, 001, ...)
 					if (count % 100000 == 0) {
@@ -1195,7 +1184,6 @@ void GLWidget3D::generateLedgeImages(const QString& cga_dir, const QString& outp
 	QDir().mkpath(output_dir);
 
 	srand(0);
-	//renderManager.depthSensitivity = 1.0f;
 	renderManager.renderingMode = RenderManager::RENDERING_MODE_LINE;
 
 	// setup camera
@@ -1266,13 +1254,6 @@ void GLWidget3D::generateLedgeImages(const QString& cga_dir, const QString& outp
 						std::cout << "ERROR:" << std::endl << ex << std::endl;
 					}
 					
-					// put a background plane
-					/*
-					std::vector<Vertex> vertices;
-					glutils::drawQuad(100, 100, glm::vec4(1, 1, 1, 1), glm::translate(glm::rotate(glm::mat4(), -3.141592f * 0.5f, glm::vec3(1, 0, 0)), glm::vec3(0, 0, -10)), vertices);
-					renderManager.addObject("background", "", vertices);
-					*/
-
 					// render a ledge
 					render();
 
@@ -1283,10 +1264,7 @@ void GLWidget3D::generateLedgeImages(const QString& cga_dir, const QString& outp
 					EDLine(source, mat, edge_displacement, sketchy_line, grayscale);
 
 					// 画像を縮小
-					cv::resize(mat, mat, cv::Size(256, 256));
-					cv::threshold(mat, mat, 250, 255, CV_THRESH_BINARY);
-					cv::resize(mat, mat, cv::Size(image_width, image_height));
-					cv::threshold(mat, mat, 250, 255, CV_THRESH_BINARY);
+					utils::resizeImage(mat, cv::Size(image_width, image_height));
 
 					// create a subdir (000, 001, ...)
 					if (count % 100000 == 0) {
@@ -1454,9 +1432,6 @@ void GLWidget3D::predictBuildingImages(const QString& cga_dir, const QString& te
 	camera.pos = glm::vec3(0, CAMERA_DEFAULT_HEIGHT * cosf(camera.xrot / 180.0f * M_PI), CAMERA_DEFAULT_DEPTH + sinf(camera.xrot / 180.0f * M_PI));
 	camera.updatePMatrix(width(), height());
 
-	int correct_classification = 0;
-	int incorrect_classification = 0;
-
 	// read the ground truth of parameter values
 	std::map<int, std::vector<std::vector<float>>> params_truth;
 	for (int i = 0; i < regressions.size(); ++i) {
@@ -1480,6 +1455,8 @@ void GLWidget3D::predictBuildingImages(const QString& cga_dir, const QString& te
 		}
 	}
 
+	int correct_classification = 0;
+	int incorrect_classification = 0;
 	std::map<int, std::vector<float>> rmse;
 	std::map<int, int> rmse_count;
 
@@ -1572,39 +1549,13 @@ void GLWidget3D::predictBuildingImages(const QString& cga_dir, const QString& te
 		cv::cvtColor(predicted_img, predicted_img, cv::COLOR_BGRA2GRAY);
 
 		// resize the predicted image
-		cv::resize(predicted_img, predicted_img, cv::Size(256, 256));
-		cv::threshold(predicted_img, predicted_img, 220, 255, cv::THRESH_BINARY);
-		cv::resize(predicted_img, predicted_img, img.size());
-		cv::threshold(predicted_img, predicted_img, 220, 255, cv::THRESH_BINARY);
+		utils::resizeImage(predicted_img, img.size());
 
 		// make the predicted image blue
-		cv::cvtColor(predicted_img, predicted_img, cv::COLOR_GRAY2BGR);
-		for (int r = 0; r < predicted_img.rows; ++r) {
-			for (int c = 0; c < predicted_img.cols; ++c) {
-				cv::Vec3b color = predicted_img.at<cv::Vec3b>(r, c);
-				if (color[0] < 128) {
-					predicted_img.at<cv::Vec3b>(r, c) = cv::Vec3b(255, 0, 0);
-				}
-				else {
-					predicted_img.at<cv::Vec3b>(r, c) = cv::Vec3b(255, 255, 255);
-				}
-			}
-		}
+		utils::blueImage(predicted_img);
 
 		// blend the prediction and the input image
-		for (int r = 0; r < predicted_img.rows; ++r) {
-			for (int c = 0; c < predicted_img.cols; ++c) {
-				cv::Vec3b color = predicted_img.at<cv::Vec3b>(r, c);
-				cv::Vec3b color2 = img.at<cv::Vec3b>(r, c);
-
-				if (color[1] == 0) {
-					predicted_img.at<cv::Vec3b>(r, c) = cv::Vec3b(255, 0, 0);
-				}
-				else {
-					predicted_img.at<cv::Vec3b>(r, c) = color2;
-				}
-			}
-		}
+		utils::blendImages(predicted_img, img, cv::Scalar(255, 255, 255));
 				
 		//cv::imwrite((output_dir + QString("/%1_%2_input.png").arg(grammar_id, 2, 10, QChar('0')).arg(iter, 2, 10, QChar('0'))).toUtf8().constData(), img);
 		cv::imwrite((output_dir + QString("/%1_%2_pred.png").arg(grammar_id, 2, 10, QChar('0')).arg(iter, 2, 10, QChar('0'))).toUtf8().constData(), predicted_img);
@@ -1658,7 +1609,7 @@ void GLWidget3D::predictRoofImages(const QString& cga_dir, const QString& testda
 
 	// load pretrained models
 	Classifier classifier((classification_dir + "/model/deploy.prototxt").toUtf8().constData(), (classification_dir + "/model/train_iter_20000.caffemodel").toUtf8().constData(), (classification_dir + "/data/mean.binaryproto").toUtf8().constData());
-	std::vector<Regression*> regressions(5);
+	std::vector<Regression*> regressions(7);
 	for (int i = 0; i < regressions.size(); ++i) {
 		QString deploy_name = regression_dir + QString("/model/deploy_%1.prototxt").arg(i + 1, 2, 10, QChar('0'));
 		QString model_name = regression_dir + QString("/model/train_%1_iter_80000.caffemodel").arg(i + 1, 2, 10, QChar('0'));
@@ -1716,24 +1667,20 @@ void GLWidget3D::predictRoofImages(const QString& cga_dir, const QString& testda
 
 					// render a roof
 					render();
+
+					// replace the edges by sketchy polylines
 					QImage rendered_img = this->grabFrameBuffer();
-					cv::Mat img = cv::Mat(rendered_img.height(), rendered_img.width(), CV_8UC4, rendered_img.bits(), rendered_img.bytesPerLine()).clone();
+					cv::Mat source(rendered_img.height(), rendered_img.width(), CV_8UC4, rendered_img.bits(), rendered_img.bytesPerLine());
+					cv::Mat img;
+					EDLine(source, img, 4, true, false);
 
-					// make the image grayscale
-					cv::cvtColor(img, img, cv::COLOR_BGRA2GRAY);
-
-					// resize and convert back to color image
-					cv::resize(img, img, cv::Size(256, 256));
-					cv::threshold(img, img, 250, 255, CV_THRESH_BINARY);
-					cv::resize(img, img, cv::Size(227, 227));
-					cv::threshold(img, img, 250, 255, CV_THRESH_BINARY);
-					cv::cvtColor(img, img, cv::COLOR_GRAY2BGR);
+					// resize the image
+					utils::resizeImage(img, cv::Size(227, 227));
 
 					// convert the image to grayscale with 128x128 size
 					cv::Mat grayImg;
 					cv::cvtColor(img, grayImg, cv::COLOR_BGR2GRAY);
-					cv::resize(grayImg, grayImg, cv::Size(128, 128));
-					cv::threshold(grayImg, grayImg, 230, 255, cv::THRESH_BINARY);
+					utils::resizeImage(grayImg, cv::Size(128, 128));
 
 					// classification
 					std::vector<Prediction> predictions = classifier.Classify(img, grammars.size());
@@ -1784,46 +1731,16 @@ void GLWidget3D::predictRoofImages(const QString& cga_dir, const QString& testda
 					render();
 					rendered_img = this->grabFrameBuffer();
 					cv::Mat predicted_img = cv::Mat(rendered_img.height(), rendered_img.width(), CV_8UC4, rendered_img.bits(), rendered_img.bytesPerLine()).clone();
-
-					// make the image grayscale
 					cv::cvtColor(predicted_img, predicted_img, cv::COLOR_BGRA2GRAY);
+					cv::cvtColor(predicted_img, predicted_img, cv::COLOR_GRAY2BGR);
 
 					// resize the predicted image
-					cv::resize(predicted_img, predicted_img, cv::Size(256, 256));
-					cv::threshold(predicted_img, predicted_img, 220, 255, cv::THRESH_BINARY);
-					cv::resize(predicted_img, predicted_img, img.size());
-					cv::threshold(predicted_img, predicted_img, 220, 255, cv::THRESH_BINARY);
+					utils::resizeImage(predicted_img, img.size());
 
 					// make the predicted image blue
-					cv::cvtColor(predicted_img, predicted_img, cv::COLOR_GRAY2BGR);
-					for (int r = 0; r < predicted_img.rows; ++r) {
-						for (int c = 0; c < predicted_img.cols; ++c) {
-							cv::Vec3b color = predicted_img.at<cv::Vec3b>(r, c);
-							if (color[0] < 128) {
-								predicted_img.at<cv::Vec3b>(r, c) = cv::Vec3b(255, 0, 0);
-							}
-							else {
-								predicted_img.at<cv::Vec3b>(r, c) = cv::Vec3b(255, 255, 255);
-							}
-						}
-					}
+					utils::blueImage(predicted_img);
 
-					// blend the prediction and the input image
-					for (int r = 0; r < predicted_img.rows; ++r) {
-						for (int c = 0; c < predicted_img.cols; ++c) {
-							cv::Vec3b color = predicted_img.at<cv::Vec3b>(r, c);
-							cv::Vec3b color2 = img.at<cv::Vec3b>(r, c);
-
-							if (color[1] == 0) {
-								predicted_img.at<cv::Vec3b>(r, c) = cv::Vec3b(255, 0, 0);
-							}
-							else {
-								predicted_img.at<cv::Vec3b>(r, c) = color2;
-							}
-						}
-					}
-
-					//cv::imwrite((output_dir + QString("/%1_%2_input.png").arg(grammar_id, 2, 10, QChar('0')).arg(iter, 6, 10, QChar('0'))).toUtf8().constData(), img);
+					cv::imwrite((output_dir + QString("/%1_%2_input.png").arg(grammar_id, 2, 10, QChar('0')).arg(iter, 6, 10, QChar('0'))).toUtf8().constData(), img);
 					cv::imwrite((output_dir + QString("/%1_%2_pred.png").arg(grammar_id, 2, 10, QChar('0')).arg(iter, 6, 10, QChar('0'))).toUtf8().constData(), predicted_img);
 
 					iter++;
@@ -1877,7 +1794,7 @@ void GLWidget3D::predictWindowImages(const QString& cga_dir, const QString& test
 
 	// load pretrained models
 	Classifier classifier((classification_dir + "/model/deploy.prototxt").toUtf8().constData(), (classification_dir + "/model/train_iter_20000.caffemodel").toUtf8().constData(), (classification_dir + "/data/mean.binaryproto").toUtf8().constData());
-	std::vector<Regression*> regressions(5);
+	std::vector<Regression*> regressions(9);
 	for (int i = 0; i < regressions.size(); ++i) {
 		QString deploy_name = regression_dir + QString("/model/deploy_%1.prototxt").arg(i + 1, 2, 10, QChar('0'));
 		QString model_name = regression_dir + QString("/model/train_%1_iter_80000.caffemodel").arg(i + 1, 2, 10, QChar('0'));
@@ -1897,12 +1814,16 @@ void GLWidget3D::predictWindowImages(const QString& cga_dir, const QString& test
 	std::map<int, int> rmse_count;
 
 	for (int grammar_id = 0; grammar_id < grammars.size(); ++grammar_id) {
+		printf("Grammar #%d:", grammar_id + 1);
+
 		int iter = 0;
 
 		for (float object_width = 0.3f; object_width <= 3.0f; object_width += 0.1f) {
 			for (float object_height = 0.9f; object_height <= 2.0f; object_height += 0.1f) {
 				int numSamples = 1;
 				for (int k = 0; k < numSamples; ++k) {
+					printf("\rGrammar #%d: %d", grammar_id + 1, iter + 1);
+
 					std::vector<float> params_truth;
 
 					// generate a window
@@ -1927,24 +1848,20 @@ void GLWidget3D::predictWindowImages(const QString& cga_dir, const QString& test
 
 					// render a roof
 					render();
+
+					// replace the edges by sketchy polylines
 					QImage rendered_img = this->grabFrameBuffer();
-					cv::Mat img = cv::Mat(rendered_img.height(), rendered_img.width(), CV_8UC4, rendered_img.bits(), rendered_img.bytesPerLine()).clone();
+					cv::Mat source(rendered_img.height(), rendered_img.width(), CV_8UC4, rendered_img.bits(), rendered_img.bytesPerLine());
+					cv::Mat img;
+					EDLine(source, img, 4, true, false);
 
-					// make the image grayscale
-					cv::cvtColor(img, img, cv::COLOR_BGRA2GRAY);
+					// 画像を縮小
+					utils::resizeImage(img, cv::Size(227, 227));
 
-					// resize and convert back to color image
-					cv::resize(img, img, cv::Size(256, 256));
-					cv::threshold(img, img, 250, 255, CV_THRESH_BINARY);
-					cv::resize(img, img, cv::Size(227, 227));
-					cv::threshold(img, img, 250, 255, CV_THRESH_BINARY);
-					cv::cvtColor(img, img, cv::COLOR_GRAY2BGR);
-
-					// convert the image to grayscale with 128x128 size
+					// convert the image to grayscale of size 128x128
 					cv::Mat grayImg;
-					cv::cvtColor(img, grayImg, cv::COLOR_BGR2GRAY);
-					cv::resize(grayImg, grayImg, cv::Size(128, 128));
-					cv::threshold(grayImg, grayImg, 230, 255, cv::THRESH_BINARY);
+					cv::cvtColor(img, grayImg, cv::COLOR_BGRA2GRAY);
+					utils::resizeImage(grayImg, cv::Size(128, 128));
 
 					// classification
 					std::vector<Prediction> predictions = classifier.Classify(img, grammars.size());
@@ -1984,56 +1901,28 @@ void GLWidget3D::predictWindowImages(const QString& cga_dir, const QString& test
 						std::cout << "ERROR:" << std::endl << ex << std::endl;
 					}
 
-					// render a building
+					// render a window
 					render();
 					rendered_img = this->grabFrameBuffer();
 					cv::Mat predicted_img = cv::Mat(rendered_img.height(), rendered_img.width(), CV_8UC4, rendered_img.bits(), rendered_img.bytesPerLine()).clone();
-
-					// make the image grayscale
 					cv::cvtColor(predicted_img, predicted_img, cv::COLOR_BGRA2GRAY);
+					cv::cvtColor(predicted_img, predicted_img, cv::COLOR_GRAY2BGR);
 
 					// resize the predicted image
-					cv::resize(predicted_img, predicted_img, cv::Size(256, 256));
-					cv::threshold(predicted_img, predicted_img, 220, 255, cv::THRESH_BINARY);
-					cv::resize(predicted_img, predicted_img, img.size());
-					cv::threshold(predicted_img, predicted_img, 220, 255, cv::THRESH_BINARY);
+					utils::resizeImage(predicted_img, img.size());
 
 					// make the predicted image blue
-					cv::cvtColor(predicted_img, predicted_img, cv::COLOR_GRAY2BGR);
-					for (int r = 0; r < predicted_img.rows; ++r) {
-						for (int c = 0; c < predicted_img.cols; ++c) {
-							cv::Vec3b color = predicted_img.at<cv::Vec3b>(r, c);
-							if (color[0] < 128) {
-								predicted_img.at<cv::Vec3b>(r, c) = cv::Vec3b(255, 0, 0);
-							}
-							else {
-								predicted_img.at<cv::Vec3b>(r, c) = cv::Vec3b(255, 255, 255);
-							}
-						}
-					}
+					utils::blueImage(predicted_img);
 
-					// blend the prediction and the input image
-					for (int r = 0; r < predicted_img.rows; ++r) {
-						for (int c = 0; c < predicted_img.cols; ++c) {
-							cv::Vec3b color = predicted_img.at<cv::Vec3b>(r, c);
-							cv::Vec3b color2 = img.at<cv::Vec3b>(r, c);
-
-							if (color[1] == 0) {
-								predicted_img.at<cv::Vec3b>(r, c) = cv::Vec3b(255, 0, 0);
-							}
-							else {
-								predicted_img.at<cv::Vec3b>(r, c) = color2;
-							}
-						}
-					}
-
-					//cv::imwrite((output_dir + QString("/%1_%2_input.png").arg(grammar_id, 2, 10, QChar('0')).arg(iter, 6, 10, QChar('0'))).toUtf8().constData(), img);
+					cv::imwrite((output_dir + QString("/%1_%2_input.png").arg(grammar_id, 2, 10, QChar('0')).arg(iter, 6, 10, QChar('0'))).toUtf8().constData(), img);
 					cv::imwrite((output_dir + QString("/%1_%2_pred.png").arg(grammar_id, 2, 10, QChar('0')).arg(iter, 6, 10, QChar('0'))).toUtf8().constData(), predicted_img);
 
 					iter++;
 				}
 			}
 		}
+
+		printf("\n");
 	}
 
 	std::cout << "--------------------------------------------------" << std::endl;
@@ -2081,7 +1970,7 @@ void GLWidget3D::predictLedgeImages(const QString& cga_dir, const QString& testd
 
 	// load pretrained models
 	Classifier classifier((classification_dir + "/model/deploy.prototxt").toUtf8().constData(), (classification_dir + "/model/train_iter_20000.caffemodel").toUtf8().constData(), (classification_dir + "/data/mean.binaryproto").toUtf8().constData());
-	std::vector<Regression*> regressions(5);
+	std::vector<Regression*> regressions(4);
 	for (int i = 0; i < regressions.size(); ++i) {
 		QString deploy_name = regression_dir + QString("/model/deploy_%1.prototxt").arg(i + 1, 2, 10, QChar('0'));
 		QString model_name = regression_dir + QString("/model/train_%1_iter_80000.caffemodel").arg(i + 1, 2, 10, QChar('0'));
@@ -2113,7 +2002,7 @@ void GLWidget3D::predictLedgeImages(const QString& cga_dir, const QString& testd
 					boost::shared_ptr<cga::Shape> start = boost::shared_ptr<cga::Shape>(new cga::Rectangle("Start", "", glm::translate(glm::rotate(glm::mat4(), -3.141592f * 0.5f, glm::vec3(1, 0, 0)), glm::vec3(-object_width*0.5f, -object_height*0.5f, 0)), glm::mat4(), object_width, object_height, glm::vec3(1, 1, 1)));
 					system.stack.push_back(start);
 
-					// generate a roof
+					// generate a ledge
 					try {
 						params_truth = system.randomParamValues(grammars[grammar_id]);
 						system.derive(grammars[grammar_id], true);
@@ -2129,26 +2018,23 @@ void GLWidget3D::predictLedgeImages(const QString& cga_dir, const QString& testd
 						std::cout << "ERROR:" << std::endl << ex << std::endl;
 					}
 
-					// render a roof
+					// render a ledge
 					render();
+
+					// replace the edges by sketchy polylines
 					QImage rendered_img = this->grabFrameBuffer();
-					cv::Mat img = cv::Mat(rendered_img.height(), rendered_img.width(), CV_8UC4, rendered_img.bits(), rendered_img.bytesPerLine()).clone();
+					cv::Mat source(rendered_img.height(), rendered_img.width(), CV_8UC4, rendered_img.bits(), rendered_img.bytesPerLine());
+					cv::Mat img;
+					EDLine(source, img, 4, true, false);
 
-					// make the image grayscale
-					cv::cvtColor(img, img, cv::COLOR_BGRA2GRAY);
+					// resize the image
+					utils::resizeImage(img, cv::Size(227, 227));
+					utils::resizeImage(img, cv::Size(227, 227));
 
-					// resize and convert back to color image
-					cv::resize(img, img, cv::Size(256, 256));
-					cv::threshold(img, img, 250, 255, CV_THRESH_BINARY);
-					cv::resize(img, img, cv::Size(227, 227));
-					cv::threshold(img, img, 250, 255, CV_THRESH_BINARY);
-					cv::cvtColor(img, img, cv::COLOR_GRAY2BGR);
-
-					// convert the image to grayscale with 128x128 size
+					// convert the image to grayscale of size 128x128
 					cv::Mat grayImg;
 					cv::cvtColor(img, grayImg, cv::COLOR_BGR2GRAY);
-					cv::resize(grayImg, grayImg, cv::Size(128, 128));
-					cv::threshold(grayImg, grayImg, 230, 255, cv::THRESH_BINARY);
+					utils::resizeImage(grayImg, cv::Size(128, 128));
 
 					// classification
 					std::vector<Prediction> predictions = classifier.Classify(img, grammars.size());
@@ -2192,46 +2078,16 @@ void GLWidget3D::predictLedgeImages(const QString& cga_dir, const QString& testd
 					render();
 					rendered_img = this->grabFrameBuffer();
 					cv::Mat predicted_img = cv::Mat(rendered_img.height(), rendered_img.width(), CV_8UC4, rendered_img.bits(), rendered_img.bytesPerLine()).clone();
-
-					// make the image grayscale
 					cv::cvtColor(predicted_img, predicted_img, cv::COLOR_BGRA2GRAY);
+					cv::cvtColor(predicted_img, predicted_img, cv::COLOR_GRAY2BGR);
 
 					// resize the predicted image
-					cv::resize(predicted_img, predicted_img, cv::Size(256, 256));
-					cv::threshold(predicted_img, predicted_img, 220, 255, cv::THRESH_BINARY);
-					cv::resize(predicted_img, predicted_img, img.size());
-					cv::threshold(predicted_img, predicted_img, 220, 255, cv::THRESH_BINARY);
+					utils::resizeImage(predicted_img, img.size());
 
 					// make the predicted image blue
-					cv::cvtColor(predicted_img, predicted_img, cv::COLOR_GRAY2BGR);
-					for (int r = 0; r < predicted_img.rows; ++r) {
-						for (int c = 0; c < predicted_img.cols; ++c) {
-							cv::Vec3b color = predicted_img.at<cv::Vec3b>(r, c);
-							if (color[0] < 128) {
-								predicted_img.at<cv::Vec3b>(r, c) = cv::Vec3b(255, 0, 0);
-							}
-							else {
-								predicted_img.at<cv::Vec3b>(r, c) = cv::Vec3b(255, 255, 255);
-							}
-						}
-					}
+					utils::blueImage(predicted_img);
 
-					// blend the prediction and the input image
-					for (int r = 0; r < predicted_img.rows; ++r) {
-						for (int c = 0; c < predicted_img.cols; ++c) {
-							cv::Vec3b color = predicted_img.at<cv::Vec3b>(r, c);
-							cv::Vec3b color2 = img.at<cv::Vec3b>(r, c);
-
-							if (color[1] == 0) {
-								predicted_img.at<cv::Vec3b>(r, c) = cv::Vec3b(255, 0, 0);
-							}
-							else {
-								predicted_img.at<cv::Vec3b>(r, c) = color2;
-							}
-						}
-					}
-
-					//cv::imwrite((output_dir + QString("/%1_%2_input.png").arg(grammar_id, 2, 10, QChar('0')).arg(iter, 6, 10, QChar('0'))).toUtf8().constData(), img);
+					cv::imwrite((output_dir + QString("/%1_%2_input.png").arg(grammar_id, 2, 10, QChar('0')).arg(iter, 6, 10, QChar('0'))).toUtf8().constData(), img);
 					cv::imwrite((output_dir + QString("/%1_%2_pred.png").arg(grammar_id, 2, 10, QChar('0')).arg(iter, 6, 10, QChar('0'))).toUtf8().constData(), predicted_img);
 
 					iter++;

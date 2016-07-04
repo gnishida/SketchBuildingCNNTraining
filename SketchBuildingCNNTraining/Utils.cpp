@@ -63,5 +63,51 @@ namespace utils {
 		//utils::cleanContours(edges, 80, 10.0 / 180.0 * M_PI);
 	}
 
+	/**
+	* Make the image smaller while preserving the black lines.
+	*/
+	void resizeImage(cv::Mat& img, const cv::Size& size) {
+		if ((img.rows > 512 || img.cols > 512) && (size.width < 512 || size.height < 512)) {
+			cv::resize(img, img, cv::Size(512, 512));
+			cv::threshold(img, img, 220, 255, cv::THRESH_BINARY);
+		}
 
+		if ((img.rows > 256 || img.cols > 256) && (size.width < 256 || size.height < 256)) {
+			cv::resize(img, img, cv::Size(256, 256));
+			cv::threshold(img, img, 220, 255, cv::THRESH_BINARY);
+		}
+
+		cv::resize(img, img, size);
+		cv::threshold(img, img, 220, 255, cv::THRESH_BINARY);
+	}
+
+	void blueImage(cv::Mat& img) {
+		if (img.channels() == 1) {
+			cv::cvtColor(img, img, cv::COLOR_GRAY2BGR);
+		}
+
+		for (int r = 0; r < img.rows; ++r) {
+			for (int c = 0; c < img.cols; ++c) {
+				cv::Vec3b color = img.at<cv::Vec3b>(r, c);
+				if (color[0] < 128) {
+					img.at<cv::Vec3b>(r, c) = cv::Vec3b(255, 0, 0);
+				}
+				else {
+					img.at<cv::Vec3b>(r, c) = cv::Vec3b(255, 255, 255);
+				}
+			}
+		}
+	}
+
+	void blendImages(cv::Mat& img1, const cv::Mat& img2, const cv::Scalar& transparent_color) {
+		for (int r = 0; r < img1.rows; ++r) {
+			for (int c = 0; c < img1.cols; ++c) {
+				cv::Vec3b color = img1.at<cv::Vec3b>(r, c);
+
+				if (color[0] == transparent_color[0] && color[1] == transparent_color[1] && color[2] == transparent_color[2]) {
+					img1.at<cv::Vec3b>(r, c) = img2.at<cv::Vec3b>(r, c);
+				}
+			}
+		}
+	}
 }
