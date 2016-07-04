@@ -42,8 +42,11 @@ namespace utils {
 
 	void extractEdges(const cv::Mat& img, std::vector<std::pair<glm::vec2, glm::vec2>>& edges) {
 		cv::Mat mat = img.clone();
-		if (mat.channels() > 1) {
+		if (mat.channels() == 4) {
 			cv::cvtColor(mat, mat, CV_BGRA2GRAY);
+		}
+		else if (mat.channels() == 3) {
+			cv::cvtColor(mat, mat, CV_BGR2GRAY);
 		}
 
 		cv::threshold(mat, mat, 128, 255, cv::THRESH_BINARY_INV);

@@ -1544,9 +1544,7 @@ void GLWidget3D::predictBuildingImages(const QString& cga_dir, const QString& te
 		render();
 		QImage rendered_img = this->grabFrameBuffer();
 		cv::Mat predicted_img = cv::Mat(rendered_img.height(), rendered_img.width(), CV_8UC4, rendered_img.bits(), rendered_img.bytesPerLine()).clone();
-
-		// make the image grayscale
-		cv::cvtColor(predicted_img, predicted_img, cv::COLOR_BGRA2GRAY);
+		cv::cvtColor(predicted_img, predicted_img, cv::COLOR_BGRA2BGR);
 
 		// resize the predicted image
 		utils::resizeImage(predicted_img, img.size());
@@ -1731,8 +1729,7 @@ void GLWidget3D::predictRoofImages(const QString& cga_dir, const QString& testda
 					render();
 					rendered_img = this->grabFrameBuffer();
 					cv::Mat predicted_img = cv::Mat(rendered_img.height(), rendered_img.width(), CV_8UC4, rendered_img.bits(), rendered_img.bytesPerLine()).clone();
-					cv::cvtColor(predicted_img, predicted_img, cv::COLOR_BGRA2GRAY);
-					cv::cvtColor(predicted_img, predicted_img, cv::COLOR_GRAY2BGR);
+					cv::cvtColor(predicted_img, predicted_img, cv::COLOR_BGRA2BGR);
 
 					// resize the predicted image
 					utils::resizeImage(predicted_img, img.size());
@@ -1905,8 +1902,7 @@ void GLWidget3D::predictWindowImages(const QString& cga_dir, const QString& test
 					render();
 					rendered_img = this->grabFrameBuffer();
 					cv::Mat predicted_img = cv::Mat(rendered_img.height(), rendered_img.width(), CV_8UC4, rendered_img.bits(), rendered_img.bytesPerLine()).clone();
-					cv::cvtColor(predicted_img, predicted_img, cv::COLOR_BGRA2GRAY);
-					cv::cvtColor(predicted_img, predicted_img, cv::COLOR_GRAY2BGR);
+					cv::cvtColor(predicted_img, predicted_img, cv::COLOR_BGRA2BGR);
 
 					// resize the predicted image
 					utils::resizeImage(predicted_img, img.size());
@@ -2078,8 +2074,7 @@ void GLWidget3D::predictLedgeImages(const QString& cga_dir, const QString& testd
 					render();
 					rendered_img = this->grabFrameBuffer();
 					cv::Mat predicted_img = cv::Mat(rendered_img.height(), rendered_img.width(), CV_8UC4, rendered_img.bits(), rendered_img.bytesPerLine()).clone();
-					cv::cvtColor(predicted_img, predicted_img, cv::COLOR_BGRA2GRAY);
-					cv::cvtColor(predicted_img, predicted_img, cv::COLOR_GRAY2BGR);
+					cv::cvtColor(predicted_img, predicted_img, cv::COLOR_BGRA2BGR);
 
 					// resize the predicted image
 					utils::resizeImage(predicted_img, img.size());

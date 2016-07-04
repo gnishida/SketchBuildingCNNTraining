@@ -14,10 +14,10 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 
-const int BUILDING_MASS_MIN_X = -24;
-const int BUILDING_MASS_MIN_Y = -24;
-const int BUILDING_MASS_MAX_X = 24;
-const int BUILDING_MASS_MAX_Y = 24;
+const int BUILDING_MASS_MIN_X = -20;
+const int BUILDING_MASS_MIN_Y = -20;
+const int BUILDING_MASS_MAX_X = 20;
+const int BUILDING_MASS_MAX_Y = 20;
 const int BUILDING_MASS_MIN_WIDTH = 6;
 const int BUILDING_MASS_MIN_DEPTH = 6;
 const int BUILDING_MASS_MAX_WIDTH = 28;
