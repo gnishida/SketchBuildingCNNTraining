@@ -14,15 +14,15 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 
-const int BUILDING_MASS_MIN_X = -20;
-const int BUILDING_MASS_MIN_Y = -20;
-const int BUILDING_MASS_MAX_X = 20;
-const int BUILDING_MASS_MAX_Y = 20;
+const int BUILDING_MASS_MIN_X = -16;
+const int BUILDING_MASS_MIN_Y = -16;
+const int BUILDING_MASS_MAX_X = 16;
+const int BUILDING_MASS_MAX_Y = 16;
 const int BUILDING_MASS_MIN_WIDTH = 6;
 const int BUILDING_MASS_MIN_DEPTH = 6;
-const int BUILDING_MASS_MAX_WIDTH = 28;
-const int BUILDING_MASS_MAX_DEPTH = 28;
-const float CAMERA_DEFAULT_HEIGHT = 0.0f;
+const int BUILDING_MASS_MAX_WIDTH = 20;
+const int BUILDING_MASS_MAX_DEPTH = 20;
+const float CAMERA_DEFAULT_HEIGHT = 5.0f;
 const float CAMERA_DEFAULT_DEPTH = 80.0f;
 
 class MainWindow;

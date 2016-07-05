@@ -804,14 +804,14 @@ void GLWidget3D::generateBuildingImages(const QString& cga_dir, const QString& o
 			for (int object_depth = BUILDING_MASS_MIN_DEPTH; object_depth <= BUILDING_MASS_MAX_DEPTH; object_depth += 2) {
 				//for (int pitch_angle = 28; pitch_angle <= 32; pitch_angle += 2) {
 					//for (int yaw_angle = -47; yaw_angle <= -43; yaw_angle += 2) {
-						for (int offset_x = BUILDING_MASS_MIN_X; offset_x <= BUILDING_MASS_MAX_X; offset_x += 4) {
-							for (int offset_y = BUILDING_MASS_MIN_Y; offset_y <= BUILDING_MASS_MAX_Y; offset_y += 4) {
+						for (int offset_x = BUILDING_MASS_MIN_X; offset_x <= BUILDING_MASS_MAX_X; offset_x += 2) {
+							for (int offset_y = BUILDING_MASS_MIN_Y; offset_y <= BUILDING_MASS_MAX_Y; offset_y += 2) {
 								// change camera view direction
 								camera.xrot = 30.0f;// pitch_angle;
 								camera.yrot = -45.0f;// yaw_angle;
 								camera.zrot = 0.0f;
 								camera.fovy = 45;//utils::uniform_rand(40, 50);
-								camera.pos = glm::vec3(0, CAMERA_DEFAULT_HEIGHT * cosf(camera.xrot / 180.0f * M_PI), CAMERA_DEFAULT_DEPTH + sinf(camera.xrot / 180.0f * M_PI));
+								camera.pos = glm::vec3(0, CAMERA_DEFAULT_HEIGHT * cosf(camera.xrot / 180.0f * M_PI), CAMERA_DEFAULT_DEPTH + CAMERA_DEFAULT_HEIGHT * sinf(camera.xrot / 180.0f * M_PI));
 								camera.updatePMatrix(width(), height());
 								//camera.updateMVPMatrix();
 
@@ -862,7 +862,7 @@ void GLWidget3D::generateBuildingImages(const QString& cga_dir, const QString& o
 										param_values.insert(param_values.begin() + 2, (float)(object_width - BUILDING_MASS_MIN_WIDTH) / (float)(BUILDING_MASS_MAX_WIDTH - BUILDING_MASS_MIN_WIDTH));
 										param_values.insert(param_values.begin() + 3, (float)(object_depth - BUILDING_MASS_MIN_DEPTH) / (float)(BUILDING_MASS_MAX_DEPTH - BUILDING_MASS_MIN_DEPTH));
 
-										if (grammar_id == 4) {	// for cylinder
+										if (grammar_id == 3) {	// for cylinder
 											param_values[3] = param_values[2];
 										}
 
@@ -925,7 +925,7 @@ void GLWidget3D::generateRoofImages(const QString& cga_dir, const QString& outpu
 	camera.yrot = -45.0f;// yaw_angle;//-45.0f + ((float)rand() / RAND_MAX - 0.5f) * 40.0f;
 	camera.zrot = 0.0f;
 	camera.fovy = 45;//utils::uniform_rand(40, 50);
-	camera.pos = glm::vec3(0, CAMERA_DEFAULT_HEIGHT * cosf(camera.xrot / 180.0f * M_PI), CAMERA_DEFAULT_DEPTH + sinf(camera.xrot / 180.0f * M_PI));
+	camera.pos = glm::vec3(0, 0, CAMERA_DEFAULT_DEPTH);
 	camera.updatePMatrix(width(), height());
 
 	int origWidth = width();
@@ -965,8 +965,8 @@ void GLWidget3D::generateRoofImages(const QString& cga_dir, const QString& outpu
 
 		QTextStream out(&file);
 
-		for (float object_width = BUILDING_MASS_MIN_WIDTH; object_width <= BUILDING_MASS_MAX_WIDTH; object_width += 4.0f) {
-			for (float object_depth = BUILDING_MASS_MIN_DEPTH; object_depth <= BUILDING_MASS_MAX_DEPTH; object_depth += 4.0f) {
+		for (float object_width = BUILDING_MASS_MIN_WIDTH; object_width <= BUILDING_MASS_MAX_WIDTH; object_width += 2.0f) {
+			for (float object_depth = BUILDING_MASS_MIN_DEPTH; object_depth <= BUILDING_MASS_MAX_DEPTH; object_depth += 2.0f) {
 				int numSamples = 50;
 				for (int k = 0; k < numSamples; ++k) { // 1 images (parameter values are randomly selected) for each width and height
 					std::vector<float> param_values;
@@ -1429,7 +1429,7 @@ void GLWidget3D::predictBuildingImages(const QString& cga_dir, const QString& te
 	camera.yrot = -45.0f;
 	camera.zrot = 0.0f;
 	camera.fovy = 45;
-	camera.pos = glm::vec3(0, CAMERA_DEFAULT_HEIGHT * cosf(camera.xrot / 180.0f * M_PI), CAMERA_DEFAULT_DEPTH + sinf(camera.xrot / 180.0f * M_PI));
+	camera.pos = glm::vec3(0, CAMERA_DEFAULT_HEIGHT * cosf(camera.xrot / 180.0f * M_PI), CAMERA_DEFAULT_DEPTH + CAMERA_DEFAULT_HEIGHT * sinf(camera.xrot / 180.0f * M_PI));
 	camera.updatePMatrix(width(), height());
 
 	// read the ground truth of parameter values
@@ -1463,8 +1463,9 @@ void GLWidget3D::predictBuildingImages(const QString& cga_dir, const QString& te
 	// read test data
 	std::ifstream in((testdata_dir + "/test.txt").toUtf8().constData());
 	int iter = 0;
+	printf("iter:");
 	while (true) {
-		std::cout << "iter: " << iter << std::endl;
+		printf("\riter: %d", iter + 1);
 
 		std::string line;
 		std::getline(in, line);
@@ -1473,13 +1474,11 @@ void GLWidget3D::predictBuildingImages(const QString& cga_dir, const QString& te
 
 		std::string file_path = line.substr(0, index);
 		int grammar_id = std::stoi(line.substr(index + 1));
-		std::cout << "  grammar_id: " << grammar_id << std::endl;
 
 		// obtain file id
 		int index1 = file_path.rfind("/");
 		int index2 = file_path.find(".", index1);
 		int file_id = stoi(file_path.substr(index1 + 1, index2 - index1 - 1));
-		std::cout << "  file_id: " << file_id << std::endl;
 
 		// read the test image
 		cv::Mat img = cv::imread((std::string(testdata_dir.toUtf8().constData()) + "/images/" + file_path).c_str());
@@ -1560,6 +1559,7 @@ void GLWidget3D::predictBuildingImages(const QString& cga_dir, const QString& te
 
 		iter++;
 	}
+	printf("\n");
 
 	std::cout << "--------------------------------------------------" << std::endl;
 	std::cout << "Classification accuracy: " << (float)correct_classification / (correct_classification + incorrect_classification) << std::endl;
@@ -1619,7 +1619,7 @@ void GLWidget3D::predictRoofImages(const QString& cga_dir, const QString& testda
 	camera.yrot = -45.0f;
 	camera.zrot = 0.0f;
 	camera.fovy = 45;
-	camera.pos = glm::vec3(0, CAMERA_DEFAULT_HEIGHT * cosf(camera.xrot / 180.0f * M_PI), CAMERA_DEFAULT_DEPTH + sinf(camera.xrot / 180.0f * M_PI));
+	camera.pos = glm::vec3(0, 0, CAMERA_DEFAULT_DEPTH);
 	camera.updatePMatrix(width(), height());
 
 	int correct_classification = 0;
@@ -1627,7 +1627,7 @@ void GLWidget3D::predictRoofImages(const QString& cga_dir, const QString& testda
 	std::map<int, std::vector<float>> rmse;
 	std::map<int, int> rmse_count;
 
-	for (int grammar_id = 0; grammar_id < grammars.size(); ++grammar_id) {
+	for (int grammar_id = 0; grammar_id < regressions.size(); ++grammar_id) {
 		int iter = 0;
 
 		for (float object_width = BUILDING_MASS_MIN_WIDTH; object_width <= BUILDING_MASS_MAX_WIDTH; object_width += 4.0f) {
