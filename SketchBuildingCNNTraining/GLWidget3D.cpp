@@ -880,13 +880,7 @@ void GLWidget3D::generateBuildingImages(const QString& cga_dir, const QString& o
 										printf("\r#%d: %d", grammar_id + 1, count + 1);
 
 										// write all the param values to the file
-										for (int pi = 0; pi < param_values.size(); ++pi) {
-											if (pi > 0) {
-												out << ",";
-											}
-											out << param_values[pi];
-										}
-										out << "\n";
+										outputVector(out, param_values);
 
 										count++;
 									}
@@ -1024,13 +1018,7 @@ void GLWidget3D::generateRoofImages(const QString& cga_dir, const QString& outpu
 					printf("\r#%d: %d", grammar_id + 1, count + 1);
 
 					// write all the param values to the file
-					for (int pi = 0; pi < param_values.size(); ++pi) {
-						if (pi > 0) {
-							out << ",";
-						}
-						out << param_values[pi];
-					}
-					out << "\n";
+					outputVector(out, param_values);
 							
 					count++;
 				}
@@ -1156,13 +1144,7 @@ void GLWidget3D::generateWindowImages(const QString& cga_dir, const QString& out
 					printf("\r#%d: %d", grammar_id + 1, count + 1);
 
 					// write all the param values to the file
-					for (int pi = 0; pi < param_values.size(); ++pi) {
-						if (pi > 0) {
-							out << ",";
-						}
-						out << param_values[pi];
-					}
-					out << "\n";
+					outputVector(out, param_values);
 					
 					count++;
 				}
@@ -1280,13 +1262,7 @@ void GLWidget3D::generateLedgeImages(const QString& cga_dir, const QString& outp
 					printf("\r#%d: %d", grammar_id + 1, count + 1);
 
 					// write all the param values to the file
-					for (int pi = 0; pi < param_values.size(); ++pi) {
-						if (pi > 0) {
-							out << ",";
-						}
-						out << param_values[pi];
-					}
-					out << "\n";
+					outputVector(out, param_values);
 					
 					count++;
 				}
@@ -1415,6 +1391,11 @@ void GLWidget3D::predictBuildingImages(const QString& cga_dir, const QString& te
 		grammars.push_back(grammar);
 	}
 
+	// open a file for predicted paramter values
+	QFile file_predicted_params(output_dir + "/predicted_params.txt");
+	file_predicted_params.open(QIODevice::WriteOnly);
+	QTextStream out_predicted_params(&file_predicted_params);
+
 	// load pretrained models
 	Classifier classifier((classification_dir + "/model/deploy.prototxt").toUtf8().constData(), (classification_dir + "/model/train_iter_20000.caffemodel").toUtf8().constData(), (classification_dir + "/data/mean.binaryproto").toUtf8().constData());
 	std::vector<Regression*> regressions(6);
@@ -1481,7 +1462,8 @@ void GLWidget3D::predictBuildingImages(const QString& cga_dir, const QString& te
 		int file_id = stoi(file_path.substr(index1 + 1, index2 - index1 - 1));
 
 		// read the test image
-		cv::Mat img = cv::imread((std::string(testdata_dir.toUtf8().constData()) + "/images/" + file_path).c_str());
+		cv::Mat img = cv::imread((testdata_dir + "/images/" + file_path.c_str()).toUtf8().constData());
+		//cv::Mat img = cv::imread((std::string(testdata_dir.toUtf8().constData()) + "/images/" + file_path).c_str());
 
 		// convert the image to grayscale with 128x128 size
 		cv::Mat grayImg;
@@ -1496,6 +1478,9 @@ void GLWidget3D::predictBuildingImages(const QString& cga_dir, const QString& te
 
 		// parameter estimation
 		std::vector<float> predicted_params = regressions[grammar_id]->Predict(grayImg);
+
+		// write the predicted params to a file
+		outputVector(out_predicted_params, predicted_params);
 
 		// 誤差を計算
 		if (rmse[grammar_id].size() == 0) {
@@ -1560,6 +1545,7 @@ void GLWidget3D::predictBuildingImages(const QString& cga_dir, const QString& te
 		iter++;
 	}
 	printf("\n");
+	file_predicted_params.close();
 
 	std::cout << "--------------------------------------------------" << std::endl;
 	std::cout << "Classification accuracy: " << (float)correct_classification / (correct_classification + incorrect_classification) << std::endl;
@@ -2129,4 +2115,12 @@ void GLWidget3D::keyPressEvent(QKeyEvent *e) {
 
 void GLWidget3D::keyReleaseEvent(QKeyEvent* e) {
 	shiftPressed = false;
+}
+
+void GLWidget3D::outputVector(QTextStream& out, const std::vector<float>& params) {
+	for (int i = 0; i < params.size(); ++i) {
+		if (i > 0) out << ",";
+		out << params[i];
+	}
+	out << "\n";
 }

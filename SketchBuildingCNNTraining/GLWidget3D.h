@@ -13,6 +13,7 @@
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
+#include <QTextStream>
 
 const int BUILDING_MASS_MIN_X = -16;
 const int BUILDING_MASS_MIN_Y = -16;
@@ -50,6 +51,8 @@ public:
 	void predictLedgeImages(const QString& cga_dir, const QString& testdata_dir, const QString& classification_dir, const QString& regression_dir, const QString& output_dir);
 	void keyPressEvent(QKeyEvent* e);
 	void keyReleaseEvent(QKeyEvent* e);
+
+	void outputVector(QTextStream& out, const std::vector<float>& params);
 
 public slots:
 	void camera_update();
